@@ -11,7 +11,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git 'https://github.com/ivy159205/cicd.git' // Hoặc dùng checkout scm nếu đã cấu hình Jenkins job
+                git branch: 'main', url: 'https://github.com/ivy159205/cicd.git'
             }
         }
 

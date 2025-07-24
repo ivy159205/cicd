@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore; // ✅ PHẢI CÓ DÒNG NÀY
+
 namespace cicd
 {
     public class Program
@@ -8,6 +10,9 @@ namespace cicd
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
+
+            builder.Services.AddDbContext<AppDbContext>(options =>
+            options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
             builder.WebHost.UseUrls("http://*:80");
 

@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         DOTNET_CLI_HOME = '/tmp/.dotnet'
-        APP_NAME = 'YourAppName' // Thay bằng tên DLL chính của bạn
+        APP_NAME = 'cicd'
         PORT = '81'
     }
 
@@ -48,17 +48,17 @@ pipeline {
             steps {
                 script {
                     // Dừng ứng dụng nếu đang chạy
-                    sh(script: "pkill -f dotnet || true", returnStatus: true)
-                    
+                    bat "taskkill /F /IM ${APP_NAME}.dll || exit 0"
+
                     // Triển khai ứng dụng
-                    sh """
+                    bat """
                     cd publish
-                    nohup dotnet ${APP_NAME}.dll --urls http://*:${PORT} > app.log 2>&1 &
+                    start /B dotnet ${APP_NAME}.dll --urls http://*:${PORT}
                     """
                     
                     // Kiểm tra ứng dụng đã chạy chưa
-                    def appRunning = sh(
-                        script: "pgrep -f 'dotnet ${APP_NAME}.dll'",
+                    def appRunning = bat(
+                        script: "tasklist | findstr /I '${APP_NAME}.dll'",
                         returnStatus: true
                     ) == 0
                     
@@ -73,7 +73,7 @@ pipeline {
     post {
         success {
             echo "✅ Deployment successful! Application running on port ${PORT}"
-            echo "Access at: http://${env.JENKINS_URL.split(':')[0]}:${PORT}"
+            echo "Access at: http://your-server-ip:${PORT}"
         }
         failure {
             echo "❌ Deployment failed"

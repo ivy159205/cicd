@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         DOTNET_CLI_HOME = '/tmp/.dotnet'
-        APP_NAME = 'cicd'
+        APP_NAME = 'cicd' // Tên file DLL không có đuôi .dll
         PORT = '81'
     }
 
@@ -16,25 +16,25 @@ pipeline {
 
         stage('Restore') {
             steps {
-                sh 'dotnet restore'
+                bat 'dotnet restore'
             }
         }
 
         stage('Build') {
             steps {
-                sh 'dotnet build --configuration Release --no-restore'
+                bat 'dotnet build --configuration Release --no-restore'
             }
         }
 
         stage('Test') {
             steps {
-                sh 'dotnet test --no-build --no-restore'
+                bat 'dotnet test --no-build --no-restore'
             }
         }
 
         stage('Publish') {
             steps {
-                sh """
+                bat """
                 dotnet publish \
                 --configuration Release \
                 --output ./publish \
@@ -48,7 +48,7 @@ pipeline {
             steps {
                 script {
                     // Dừng ứng dụng nếu đang chạy
-                    bat "taskkill /F /IM ${APP_NAME}.dll || exit 0"
+                    bat "taskkill /F /IM ${APP_NAME}.exe || exit 0"
 
                     // Triển khai ứng dụng
                     bat """
@@ -58,7 +58,7 @@ pipeline {
                     
                     // Kiểm tra ứng dụng đã chạy chưa
                     def appRunning = bat(
-                        script: "tasklist | findstr /I '${APP_NAME}.dll'",
+                        script: "tasklist | findstr /I '${APP_NAME}.exe'",
                         returnStatus: true
                     ) == 0
                     

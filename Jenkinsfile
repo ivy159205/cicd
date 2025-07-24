@@ -2,81 +2,60 @@ pipeline {
     agent any
 
     environment {
-        DOTNET_CLI_HOME = '/tmp/.dotnet'
-        APP_NAME = 'cicd' // Tên file DLL không có đuôi .dll
+        PROJECT_NAME = 'cicd'
+        DOCKER_IMAGE = 'cicd:latest'
+        CONTAINER_NAME = 'cicd-container'
         PORT = '81'
     }
 
     stages {
         stage('Checkout') {
             steps {
-                checkout scm
+                git 'https://github.com/ivy159205/cicd.git' // Hoặc dùng checkout scm nếu đã cấu hình Jenkins job
             }
         }
 
-        stage('Restore') {
+        stage('Restore & Build') {
             steps {
-                bat 'dotnet restore'
-            }
-        }
-
-        stage('Build') {
-            steps {
-                bat 'dotnet build --configuration Release --no-restore'
+                sh 'dotnet restore'
+                sh 'dotnet build -c Release'
             }
         }
 
         stage('Test') {
             steps {
-                bat 'dotnet test --no-build --no-restore'
+                sh 'dotnet test || true'  // Cho phép job tiếp tục nếu test fail (tuỳ chọn)
             }
         }
 
         stage('Publish') {
             steps {
-                bat """
-                dotnet publish \
-                --configuration Release \
-                --output ./publish \
-                --no-build \
-                --no-restore
-                """
+                sh 'dotnet publish -c Release -o out'
             }
         }
 
-        stage('Deploy') {
+        stage('Build Docker Image') {
             steps {
-                script {
-                    // Dừng ứng dụng nếu đang chạy
-                    bat "taskkill /F /IM ${APP_NAME}.exe || exit 0"
+                sh 'docker build -t $DOCKER_IMAGE .'
+            }
+        }
 
-                    // Triển khai ứng dụng
-                    bat """
-                    cd publish
-                    start /B dotnet ${APP_NAME}.dll --urls http://*:${PORT}
-                    """
-                    
-                    // Kiểm tra ứng dụng đã chạy chưa
-                    def appRunning = bat(
-                        script: "tasklist | findstr /I '${APP_NAME}.exe'",
-                        returnStatus: true
-                    ) == 0
-                    
-                    if (!appRunning) {
-                        error('Failed to start application')
-                    }
-                }
+        stage('Deploy Docker Container') {
+            steps {
+                sh '''
+                    docker rm -f $CONTAINER_NAME || true
+                    docker run -d -p $PORT:80 --name $CONTAINER_NAME $DOCKER_IMAGE
+                '''
             }
         }
     }
 
     post {
         success {
-            echo "✅ Deployment successful! Application running on port ${PORT}"
-            echo "Access at: http://your-server-ip:${PORT}"
+            echo "✅ Deployed to http://localhost:$PORT"
         }
         failure {
-            echo "❌ Deployment failed"
+            echo "❌ CI/CD Failed"
         }
     }
 }

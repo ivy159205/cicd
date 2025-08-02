@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore; // ✅ PHẢI CÓ DÒNG NÀY
-using Prometheus;
 
 namespace cicd
 {

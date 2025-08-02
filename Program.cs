@@ -31,6 +31,7 @@ namespace cicd
             app.UseStaticFiles();
 
             app.UseRouting();
+            app.UseHttpMetrics();
 
             app.UseMetricServer();
             app.MapMetrics();

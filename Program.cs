@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore; // ✅ PHẢI CÓ DÒNG NÀY
+using Prometheus;
 
 namespace cicd
 {
@@ -30,6 +31,9 @@ namespace cicd
             app.UseStaticFiles();
 
             app.UseRouting();
+
+            app.UseMetricServer();
+            app.MapMetrics();
 
             app.UseAuthorization();
 

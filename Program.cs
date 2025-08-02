@@ -34,14 +34,19 @@ namespace cicd
             app.UseHttpMetrics();
 
             app.UseMetricServer();
-            app.MapMetrics();
+            // app.MapMetrics();
 
             app.UseAuthorization();
 
-            app.MapControllerRoute(
-                name: "default",
-                pattern: "{controller=Home}/{action=Index}/{id?}");
-
+            app.UseEndpoints(endpoints =>
+{
+    endpoints.MapControllerRoute(
+        name: "default",
+        pattern: "{controller=Home}/{action=Index}/{id?}");
+    
+    // Gom cả MapMetrics vào đây để đảm bảo nó cũng là một endpoint
+    endpoints.MapMetrics(); 
+});
             app.Run();
         }
     }
